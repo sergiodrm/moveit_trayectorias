@@ -205,7 +205,8 @@ moveit::planning_interface::MoveGroupInterface::Plan MyRobot::plan_CartesianTraj
 	this->visual_tools->deleteAllMarkers();
 	this->visual_tools->publishAxisLabeled(waypoints.at(waypoints.size()-1), "pose goal");
 	this->visual_tools->publishText(text_pose, "Joint Space Goal", rvt::WHITE, rvt::XLARGE);
-	this->visual_tools->publishTrajectoryLine(trajectory, this->move_group->getCurrentState()->getJointModelGroup(this->planning_group.c_str()));
+	this->visual_tools->publishTrajectoryLine(trajectory,
+			this->move_group->getCurrentState()->getJointModelGroup(this->planning_group.c_str()));
 
 	this->visual_tools->publishPath(waypoints, rvt::LIME_GREEN, rvt::SMALL);
 	for (std::size_t i = 0; i < waypoints.size(); ++i)
