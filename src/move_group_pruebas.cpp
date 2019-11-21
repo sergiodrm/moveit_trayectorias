@@ -31,10 +31,11 @@ int main(int argc, char** argv)
 
 	if (true)
 	{
-		MyRobot rb1;
+		MyRobot rb1("panda_arm");
 		geometry_msgs::Pose target;
 		do
 		{
+			rb1.come_back_home();
 			rb1.moveto_userpoint(&target);
 		} while (ros::ok());
 
