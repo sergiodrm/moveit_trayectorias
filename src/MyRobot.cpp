@@ -65,6 +65,8 @@ MyRobot::MyRobot(const std::string &planning_group)
 	this->home.orientation.x = q.getZ();
 	this->home.orientation.x = q.getW();
 
+	this->target = this->home;
+
 	this->error.position.x = 0;
 	this->error.position.y = 0;
 	this->error.position.z = 0;
@@ -82,30 +84,54 @@ void MyRobot::ejecutar()
 
 void MyRobot::print_state()
 {
-	std::cout << "------------------------" << std::endl << std::endl;
+	tf::Quaternion goal_q;
+	goal_q.setX(this->target.orientation.x);
+	goal_q.setY(this->target.orientation.y);
+	goal_q.setZ(this->target.orientation.z);
+	goal_q.setW(this->target.orientation.w);
+	goal_q.normalize();
+	tf::Matrix3x3 m(goal_q);
+	double roll, pitch, yaw;
+	m.getRPY(roll, pitch, yaw);
+
+	geometry_msgs::Vector3 error_posicion;
+	error_posicion.x = this->target.position.x - this->move_group->getCurrentPose().pose.position.x;
+	error_posicion.y = this->target.position.y - this->move_group->getCurrentPose().pose.position.y;
+	error_posicion.z = this->target.position.z - this->move_group->getCurrentPose().pose.position.z;
+	double error_roll, error_pitch, error_yaw;
+	error_roll = roll - this->move_group->getCurrentRPY().at(0);
+	error_pitch = pitch - this->move_group->getCurrentRPY().at(1);
+	error_yaw = yaw - this->move_group->getCurrentRPY().at(2);
+	double error_orientation = sqrt(pow(error_roll,2)+pow(error_pitch,2)+pow(error_yaw,2));
+
+	std::cout << "------------------------ Posicion y orientacion actual ------------------------" << std::endl;
 	std::cout << "Posicion [x, y, z] (m):      \t[" << this->move_group->getCurrentPose().pose.position.x << ", ";
 	std::cout << this->move_group->getCurrentPose().pose.position.y << ", " << this->move_group->getCurrentPose().pose.position.z << "]" << std::endl;
 	std::cout << "Orientacion [R, P, Y] (rad): \t[" << this->move_group->getCurrentRPY().at(0) << ", ";
 	std::cout << this->move_group->getCurrentRPY().at(1) << ", " << this->move_group->getCurrentRPY().at(2) << "]" << std::endl;
-	std::cout << "Error de posicion [x, y, z]: \t[" << this->error.position.x << ", ";
-	std::cout << this->error.position.y << ", " << this->error.position.z << "]" << std::endl;
-	std::cout << "Error de posicion (euclidea):\t";
-	std::cout << sqrt(pow(this->error.position.x, 2)+pow(this->error.position.y,2)+pow(this->error.position.z,2)) << "metros" << std::endl;
+
+	std::cout << "------------------------ Objetivo actual ------------------------" << std::endl;
+	std::cout << "Posicion [x, y, z] (m):      \t[" << this->target.position.x << ", ";
+	std::cout << this->target.position.y << ", " << this->target.position.z << "]" << std::endl;
+	std::cout << "Orientacion [R, P, Y] (rad): \t[" << roll << ", " << pitch << ", " << yaw << "]" << std::endl;
+
+	std::cout << "------------------------ Tolerancias ------------------------" << std::endl;
 	std::cout << "Tolerancia articular: " << this->move_group->getGoalJointTolerance() << std::endl;
 	std::cout << "Tolerancia posicion: " << this->move_group->getGoalPositionTolerance() << std::endl;
 	std::cout << "Tolerancia orientacion: " << this->move_group->getGoalOrientationTolerance() << std::endl << std::endl;
-	std::cout << "------------------------" << std::endl;
+
+	std::cout << "------------------------ Error entre objetivo y posicion actual ------------------------" << std::endl;
+	std::cout << "Error de posicion [x, y, z]: \t[" << this->error.position.x << ", ";
+	std::cout << error.position.y << ", " << this->error.position.z << "]" << std::endl;
+	std::cout << "Error de posicion (euclidea):\t";
+	std::cout << sqrt(pow(this->error.position.x, 2)+pow(this->error.position.y,2)+pow(this->error.position.z,2)) << "metros" << std::endl;
+	std::cout << "Error de orientacion:        \t" << error_orientation << std::endl;
 }
 
-void MyRobot::moveto_userpoint(geometry_msgs::Pose *target)
+void MyRobot::moveto_userpoint()
 {
 	tf2::Quaternion q;
 	q.setRPY(this->move_group->getCurrentRPY().at(0), this->move_group->getCurrentRPY().at(1), this->move_group->getCurrentRPY().at(2));
-	target->position = this->move_group->getCurrentPose().pose.position;
-
-	this->error.position.x = this->move_group->getCurrentPose().pose.position.x - target->position.x;
-	this->error.position.y = this->move_group->getCurrentPose().pose.position.y - target->position.y;
-	this->error.position.z = this->move_group->getCurrentPose().pose.position.z - target->position.z;
 	this->print_state();
 
 	char op;
@@ -113,11 +139,11 @@ void MyRobot::moveto_userpoint(geometry_msgs::Pose *target)
 	std::cin >> op;
 	if (op == 's'){
 		std::cout << "\tx: ";
-		std::cin >> target->position.x;
+		std::cin >> this->target.position.x;
 		std::cout << "\ty: ";
-		std::cin >> target->position.y;
+		std::cin >> this->target.position.y;
 		std::cout << "\tz: ";
-		std::cin >> target->position.z;
+		std::cin >> this->target.position.z;
 	}
 	std::cout << "Cambiar orientacion (s/n): >> ";
 	std::cin >> op;
@@ -130,10 +156,11 @@ void MyRobot::moveto_userpoint(geometry_msgs::Pose *target)
 		std::cout << "\tYaw: ";
 		std::cin >> y;
 		q.setRPY(r,p,y);
-		target->orientation.x = q.getX();
-		target->orientation.y = q.getY();
-		target->orientation.z = q.getZ();
-		target->orientation.w = q.getW();
+		q.normalize();
+		this->target.orientation.x = q.getX();
+		this->target.orientation.y = q.getY();
+		this->target.orientation.z = q.getZ();
+		this->target.orientation.w = q.getW();
 	}
 	std::cout << "Cambiar tolerancias? (s/n): >> ";
 	std::cin >> op;

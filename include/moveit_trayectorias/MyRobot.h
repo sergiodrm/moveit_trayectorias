@@ -27,7 +27,7 @@ public:
 	MyRobot(const std::string &planning_group);
 	virtual ~MyRobot();
 
-	void moveto_userpoint(geometry_msgs::Pose *target);
+	void moveto_userpoint();
 	void draw_trajectory(moveit_msgs::RobotTrajectory trajectory, std::vector<geometry_msgs::Pose> waypoints);
 	void print_state();
 	void ejecutar();
@@ -45,9 +45,12 @@ private:
 	// Clase que permite mostrar mensajes y gráficos en RViz
 	moveit_visual_tools::MoveItVisualTools *visual_tools;
 	Eigen::Affine3d text_pose;
-	geometry_msgs::Pose home;
-	geometry_msgs::Pose error;
 
+	// Variables para las trayectorias
+	geometry_msgs::Pose home;
+	geometry_msgs::Pose target;
+
+	// Constantes para el planificador
 	const double eef_step = 0.01;
 	const double jump_threshold = 0;
 };
