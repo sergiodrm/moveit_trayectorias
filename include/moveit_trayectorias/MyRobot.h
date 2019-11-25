@@ -19,6 +19,7 @@
 #include <moveit_msgs/CollisionObject.h>
 
 #include <moveit_visual_tools/moveit_visual_tools.h>
+#include <control_msgs/GripperCommand.h>
 #include <ros/ros.h>
 
 class MyRobot {
@@ -31,11 +32,15 @@ public:
 	void draw_trajectory(moveit_msgs::RobotTrajectory trajectory, std::vector<geometry_msgs::Pose> waypoints);
 	void print_state();
 	void ejecutar();
+	void ejecutar(moveit::planning_interface::MoveGroupInterface::Plan plan);
+	void corregir_error_final();
 
 	void come_back_home();
 	bool plan_JointTrajectory(geometry_msgs::Pose target);
 	moveit::planning_interface::MoveGroupInterface::Plan plan_CartesianTrajectory(std::vector<geometry_msgs::Pose> target);
 	void prueba_precision();
+
+	void grip_control(double position);
 private:
 	// Nombre de referencia para el brazo
 	std::string planning_group;
@@ -51,9 +56,13 @@ private:
 	geometry_msgs::Pose home;
 	geometry_msgs::Pose target;
 
+	// Variables para controlar la pinza del brazo
+	ros::Publisher grip;
+
 	// Constantes para el planificador
 	const double eef_step = 0.01;
 	const double jump_threshold = 0;
+	const double tolerancia_error = 0.02;
 };
 
 #endif /* SRC_MyRobot_H_ */

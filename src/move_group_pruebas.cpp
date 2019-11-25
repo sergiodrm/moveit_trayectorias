@@ -29,15 +29,19 @@ int main(int argc, char** argv)
 	spinner.start();
 
 
+	double x = 0;
 	if (true)
 	{
-		MyRobot rb1("panda_arm");
+		MyRobot rb1("j2s7s200_arm");
 		geometry_msgs::Pose target;
 		do
 		{
 //			rb1.come_back_home();
 //			rb1.moveto_userpoint(&target);
-			rb1.prueba_precision();
+			//rb1.prueba_precision();
+			std::cout << "Pinza: ";
+			std::cin >> x;
+			rb1.grip_control(x);
 		} while (ros::ok());
 
 	} else {
