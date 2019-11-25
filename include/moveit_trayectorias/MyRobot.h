@@ -22,6 +22,15 @@
 #include <control_msgs/GripperCommand.h>
 #include <ros/ros.h>
 
+struct Puerta
+{
+	double giro_picaporte;
+	double giro_puerta;
+	geometry_msgs::Vector3 eje_giro_picaporte;
+	geometry_msgs::Vector3 punto_apoyo_picaporte;
+	geometry_msgs::Vector3 eje_giro_puerta;
+};
+
 class MyRobot {
 public:
 	MyRobot();
@@ -34,6 +43,7 @@ public:
 	void ejecutar();
 	void ejecutar(moveit::planning_interface::MoveGroupInterface::Plan plan);
 	void corregir_error_final();
+	void open_door();
 
 	void come_back_home();
 	bool plan_JointTrajectory(geometry_msgs::Pose target);
