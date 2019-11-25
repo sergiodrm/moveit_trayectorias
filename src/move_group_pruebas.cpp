@@ -35,8 +35,9 @@ int main(int argc, char** argv)
 		geometry_msgs::Pose target;
 		do
 		{
-			rb1.come_back_home();
-			rb1.moveto_userpoint(&target);
+//			rb1.come_back_home();
+//			rb1.moveto_userpoint(&target);
+			rb1.prueba_precision();
 		} while (ros::ok());
 
 	} else {

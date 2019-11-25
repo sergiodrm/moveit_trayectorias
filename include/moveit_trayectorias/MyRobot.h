@@ -35,6 +35,7 @@ public:
 	void come_back_home();
 	bool plan_JointTrajectory(geometry_msgs::Pose target);
 	moveit::planning_interface::MoveGroupInterface::Plan plan_CartesianTrajectory(std::vector<geometry_msgs::Pose> target);
+	void prueba_precision();
 private:
 	// Nombre de referencia para el brazo
 	std::string planning_group;
