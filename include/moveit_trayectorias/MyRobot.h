@@ -19,7 +19,7 @@
 #include <moveit_msgs/CollisionObject.h>
 
 #include <moveit_visual_tools/moveit_visual_tools.h>
-#include <control_msgs/GripperCommand.h>
+#include <control_msgs/GripperCommandActionGoal.h>
 #include <ros/ros.h>
 
 class MyRobot {

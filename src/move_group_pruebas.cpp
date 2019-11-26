@@ -37,11 +37,11 @@ int main(int argc, char** argv)
 		do
 		{
 //			rb1.come_back_home();
-//			rb1.moveto_userpoint(&target);
-			//rb1.prueba_precision();
-			std::cout << "Pinza: ";
-			std::cin >> x;
-			rb1.grip_control(x);
+//			rb1.moveto_userpoint();
+			rb1.prueba_precision();
+//			std::cout << "Pinza: ";
+//			std::cin >> x;
+//			rb1.grip_control(x);
 		} while (ros::ok());
 
 	} else {

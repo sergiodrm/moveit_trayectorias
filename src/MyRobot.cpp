@@ -36,7 +36,7 @@ MyRobot::MyRobot() {
 	this->home.orientation.w = q.getW();
 
 	ros::NodeHandle n;
-	this->grip = n.advertise<control_msgs::GripperCommand>("/rb1/j2s7s200_gripper/gripper_command/goal", 5);
+	this->grip = n.advertise<control_msgs::GripperCommandActionGoal>("/rb1/j2s7s200_gripper/gripper_command/goal", 5);
 }
 
 MyRobot::MyRobot(const std::string &planning_group)
@@ -482,9 +482,9 @@ moveit::planning_interface::MoveGroupInterface::Plan MyRobot::plan_CartesianTraj
 
 void MyRobot::grip_control(double position)
 {
-	control_msgs::GripperCommand msg;
-	msg.position = position;
-	this->grip.publish(msg);
+//	control_msgs::GripperCommandActionGoal msg;
+//	msg.goal.command.position(position);
+//	this->grip.publish(msg);
 }
 
 
