@@ -32,12 +32,11 @@ public:
 	void draw_trajectory(moveit_msgs::RobotTrajectory trajectory, std::vector<geometry_msgs::Pose> waypoints);
 	void print_state();
 	void ejecutar();
-	void ejecutar(moveit::planning_interface::MoveGroupInterface::Plan plan);
 	void corregir_error_final();
 
 	void come_back_home();
 	bool plan_JointTrajectory(geometry_msgs::Pose target);
-	moveit::planning_interface::MoveGroupInterface::Plan plan_CartesianTrajectory(std::vector<geometry_msgs::Pose> target);
+	void plan_CartesianTrajectory(std::vector<geometry_msgs::Pose> target);
 	void prueba_precision();
 
 	void grip_control(double position);
@@ -52,9 +51,14 @@ private:
 	moveit_visual_tools::MoveItVisualTools *visual_tools;
 	Eigen::Affine3d text_pose;
 
+	// Variable para leer el joint_states
+	ros::Subscriber joint_states_subs;
+	sensor_msgs::JointState joint_states;
+
 	// Variables para las trayectorias
 	geometry_msgs::Pose home;
 	geometry_msgs::Pose target;
+	moveit::planning_interface::MoveGroupInterface::Plan my_plan;
 
 	// Variables para controlar la pinza del brazo
 	ros::Publisher grip;
