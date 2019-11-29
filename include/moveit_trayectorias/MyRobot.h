@@ -22,6 +22,10 @@
 #include <control_msgs/GripperCommandActionGoal.h>
 #include <ros/ros.h>
 
+
+enum ejes {eje_x, eje_y, eje_z, diagonal_ari, diagonal_ard, diagonal_abi, diagonal_abd};
+enum tipo_trayectoria {articular, cartesiana};
+
 class MyRobot {
 public:
 	MyRobot();
@@ -29,14 +33,13 @@ public:
 	virtual ~MyRobot();
 
 	void moveto_userpoint();
-	void draw_trajectory(moveit_msgs::RobotTrajectory trajectory, std::vector<geometry_msgs::Pose> waypoints);
+	void draw_trajectory(std::vector<geometry_msgs::Pose> waypoints);
 	void print_state();
 	void ejecutar();
 	void corregir_error_final();
 
 	void come_back_home();
-	bool plan_JointTrajectory(geometry_msgs::Pose target);
-	void plan_CartesianTrajectory(std::vector<geometry_msgs::Pose> target);
+	bool plan_Trajectory(std::vector<geometry_msgs::Pose> waypoints, int tipo);
 	void prueba_precision();
 
 	void grip_control(double position);
@@ -64,7 +67,7 @@ private:
 	ros::Publisher grip;
 
 	// Constantes para el planificador
-	const double eef_step = 0.01;
+	const double eef_step = 0.1;
 	const double jump_threshold = 0;
 	const double tolerancia_error = 0.02;
 };
