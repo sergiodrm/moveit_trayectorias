@@ -1,0 +1,9 @@
+<launch>
+	<!-- Archivo para configurar el arbol de tf para que no de errores en MoveIt -->
+	<node pkg="tf" type="static_transform_publisher" name="link_fcu" args="0 0 0 0 0 0 rb1_base_footprint fcu 10"/>
+	
+	<node pkg="tf" type="static_transform_publisher" name="link_rb1_filtered_docking_station_laser" args="0 0 0 0 0 0 rb1_base_footprint rb1_filtered_docking_station_laser 10"/>
+	
+	<node pkg="tf" type="static_transform_publisher" name="link_local_origin" args="0 0 0 0 0 0 rb1_base_footprint local_origin 10"/>
+	
+</launch>
