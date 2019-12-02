@@ -1,4 +1,5 @@
 <launch>
+
 	<!-- Archivo para configurar el arbol de tf para que no de errores en MoveIt -->
 	<node pkg="tf" type="static_transform_publisher" name="link_fcu" args="0 0 0 0 0 0 rb1_base_footprint fcu 10"/>
 	

@@ -35,7 +35,7 @@ public:
 	void moveto_userpoint();
 	void draw_trajectory(std::vector<geometry_msgs::Pose> waypoints);
 	void print_state();
-	void ejecutar();
+	void ejecutar(bool corregir_error = false);
 	void corregir_error_final();
 
 	void come_back_home();
@@ -67,9 +67,11 @@ private:
 	ros::Publisher grip;
 
 	// Constantes para el planificador
-	const double eef_step = 0.1;
+	ros::Publisher plan_topic;
+	const double eef_step = 0.01;
 	const double jump_threshold = 0;
 	const double tolerancia_error = 0.02;
+	const double plan_time = 10;
 };
 
 #endif /* SRC_MyRobot_H_ */
