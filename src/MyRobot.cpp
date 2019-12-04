@@ -9,12 +9,16 @@
 
 /* ~~~~~~~~~~~~~~~~~~ Callback para leer el joint_states ~~~~~~~~~~~~~~~~~~~~~~ */
 static sensor_msgs::JointState joint_states_robot;
+static std::queue<sensor_msgs::JointState> queue_joint_states;
 
 void callback_jointstates(const sensor_msgs::JointState msg)
 {
 	if (msg.name[0].compare("j2s7s200_joint_1") == 0)
 	{
 		joint_states_robot = msg;
+		if (queue_joint_states.size() > 2)
+			queue_joint_states.pop();
+		queue_joint_states.push(joint_states_robot);
 	}
 }
 
@@ -67,6 +71,8 @@ MyRobot::MyRobot() {
 	this->grip = n.advertise<control_msgs::GripperCommandActionGoal>("/rb1/j2s7s200_gripper/gripper_command/goal", 5);
 	this->joint_states_subs = n.subscribe("/rb1/joint_state", 20, callback_jointstates);
 
+	this->rate = new ros::Rate(10);
+
 }
 
 MyRobot::MyRobot(const std::string &planning_group)
@@ -108,6 +114,7 @@ MyRobot::MyRobot(const std::string &planning_group)
 	this->grip = n.advertise<control_msgs::GripperCommandActionGoal>("/rb1/j2s7s200_gripper/gripper_command/goal", 5);
 	this->joint_states_subs = n.subscribe("/rb1/joint_states", 20, callback_jointstates);
 
+	this->rate = new ros::Rate(10);
 }
 
 MyRobot::~MyRobot() {
@@ -236,7 +243,7 @@ void MyRobot::corregir_error_final()
 {
 	geometry_msgs::Vector3 error_ejes;
 	std::vector<geometry_msgs::Pose> w;
-	char op;
+	char op = 's';
 
 	error_ejes.x = this->target.position.x - this->move_group->getCurrentPose().pose.position.x;
 	error_ejes.y = this->target.position.y - this->move_group->getCurrentPose().pose.position.y;
@@ -254,13 +261,14 @@ void MyRobot::corregir_error_final()
 
 
 		std::cout << "Corregir error? (s/n) >>> ";
-		std::cin >> op;
+//		std::cin >> op;
 		if (op == 's')
 		{
 			this->move_group->move();
 			error_ejes.x = this->target.position.x - this->move_group->getCurrentPose().pose.position.x;
 			error_ejes.y = this->target.position.y - this->move_group->getCurrentPose().pose.position.y;
 			error_ejes.z = this->target.position.z - this->move_group->getCurrentPose().pose.position.z;
+			this->rate->sleep();
 		}
 		std::cout << "\033[0m\n";
 	}
@@ -351,38 +359,7 @@ void MyRobot::prueba_precision()
 			this->ejecutar();
 
 			/* Vuelta */
-			switch (eje)
-			{
-			case ejes::eje_x:
-				this->target.position.x -= delta;
-				break;
-			case ejes::eje_y:
-				this->target.position.y -= delta;
-				break;
-			case ejes::eje_z:
-				this->target.position.z -= delta;
-				break;
-			case ejes::diagonal_ari:
-				this->target.position.x -= delta;
-				this->target.position.y -= delta;
-				this->target.position.z -= delta;
-				break;
-			case ejes::diagonal_ard:
-				this->target.position.x -= delta;
-				this->target.position.y += delta;
-				this->target.position.z -= delta;
-				break;
-			case ejes::diagonal_abi:
-				this->target.position.x -= delta;
-				this->target.position.y -= delta;
-				this->target.position.z += delta;
-				break;
-			case ejes::diagonal_abd:
-				this->target.position.x -= delta;
-				this->target.position.y += delta;
-				this->target.position.z += delta;
-				break;
-			}
+			this->target = this->home;
 
 			/* Planificacion y ejecucion */
 			actual = this->move_group->getCurrentPose().pose;
@@ -394,6 +371,7 @@ void MyRobot::prueba_precision()
 
 			this->print_state();
 			this->ejecutar();
+
 		}
 		this->move_group->setGoalJointTolerance(this->move_group->getGoalJointTolerance()*0.1);
 		this->move_group->setGoalOrientationTolerance((this->move_group->getGoalOrientationTolerance()*0.1));
@@ -440,19 +418,41 @@ void MyRobot::come_back_home()
 
 void MyRobot::ejecutar(bool corregir_error)
 {
-	char op;
+	char op = 's';
 	std::cout << "Ejecutar? (s/n) >>> ";
-	std::cin >> op;
+//	std::cin >> op;
 	if (op == 's')
 	{
 		this->move_group->execute(my_plan);
 		if (corregir_error)
 			this->corregir_error_final();
 	}
+	this->rate->sleep();
 }
 
 bool MyRobot::plan_Trajectory(std::vector<geometry_msgs::Pose> waypoints, int tipo)
 {
+	/*
+	 * Antes de planificar, hay que comprobar que el joint_states tiene la ultima
+	 * posicion actualizada
+	 */
+	double max_diff;
+	int k = 0;
+	do{
+		std::cout << "Esperando a la actualizacion del joint_states... " << my_abs<double>(queue_joint_states.front().position[k] - queue_joint_states.back().position[k]) << std::endl;
+		if (my_abs<double>(queue_joint_states.front().position[k] - queue_joint_states.back().position[k]) > max_diff)
+		{
+			max_diff = my_abs<double>(queue_joint_states.front().position[k] - queue_joint_states.back().position[k]);
+		}
+		k++;
+		if (k == queue_joint_states.front().position.size())
+		{
+			k = 0;
+			max_diff = -1;
+		}
+
+	}while (max_diff != 0);
+
 	bool success = false;
 	bool plan_correct;
 	int n = 0;
@@ -515,6 +515,7 @@ bool MyRobot::plan_Trajectory(std::vector<geometry_msgs::Pose> waypoints, int ti
 		}
 
 	} while (!plan_correct && n < 10);
+
 	if (plan_correct)
 	{
 		std::cout << "\033[32m\n\nPlanificacion correcta!\033[0m\n\n";
@@ -523,6 +524,7 @@ bool MyRobot::plan_Trajectory(std::vector<geometry_msgs::Pose> waypoints, int ti
 		this->plan_topic.publish(my_plan.trajectory_);
 
 	} else std::cout << "\033[31m\n\nPlanificacion erronea!\033[0m\n\n";
+	this->rate->sleep();
 	return success;
 }
 
@@ -532,6 +534,7 @@ void MyRobot::grip_control(double position)
 	msg.header.frame_id = "j2s7s200_gripper";
 	msg.goal.command.position = position;
 	this->grip.publish(msg);
+	this->rate->sleep();
 }
 
 

@@ -9,6 +9,7 @@
 #define SRC_MyRobot_H_
 
 #include <math.h>
+#include <queue>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 
@@ -49,6 +50,7 @@ private:
 
 	// Clase donde se almacenan los metodos para el control del robot
 	moveit::planning_interface::MoveGroupInterface *move_group;
+	ros::Rate *rate;
 
 	// Clase que permite mostrar mensajes y gráficos en RViz
 	moveit_visual_tools::MoveItVisualTools *visual_tools;
