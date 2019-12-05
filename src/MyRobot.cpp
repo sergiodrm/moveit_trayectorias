@@ -71,7 +71,7 @@ MyRobot::MyRobot() {
 	this->grip = n.advertise<control_msgs::GripperCommandActionGoal>("/rb1/j2s7s200_gripper/gripper_command/goal", 5);
 	this->joint_states_subs = n.subscribe("/rb1/joint_state", 20, callback_jointstates);
 
-	this->rate = new ros::Rate(10);
+	this->rate = new ros::Rate(5);
 
 }
 
@@ -114,7 +114,7 @@ MyRobot::MyRobot(const std::string &planning_group)
 	this->grip = n.advertise<control_msgs::GripperCommandActionGoal>("/rb1/j2s7s200_gripper/gripper_command/goal", 5);
 	this->joint_states_subs = n.subscribe("/rb1/joint_states", 20, callback_jointstates);
 
-	this->rate = new ros::Rate(10);
+	this->rate = new ros::Rate(5);
 }
 
 MyRobot::~MyRobot() {
@@ -249,14 +249,16 @@ void MyRobot::corregir_error_final()
 	error_ejes.y = this->target.position.y - this->move_group->getCurrentPose().pose.position.y;
 	error_ejes.z = this->target.position.z - this->move_group->getCurrentPose().pose.position.z;
 
+	int n = 0;
 
-	while (sqrt(pow(error_ejes.x,2) + pow(error_ejes.y,2) + pow(error_ejes.z,2)) >= this->tolerancia_error && op != 'n')
+
+	while (sqrt(pow(error_ejes.x,2) + pow(error_ejes.y,2) + pow(error_ejes.z,2)) >= this->tolerancia_error && op != 'n' && n < 5)
 	{
 		std::cout << "\033[33mError permitido de " << this->tolerancia_error << " metros." << std::endl;
 		std::cout << "\033[33mError de: " << sqrt(pow(error_ejes.x,2) + pow(error_ejes.y,2) + pow(error_ejes.z,2));
 		std::cout << " metros...\n\n";
 		w.push_back(this->target);
-		this->plan_Trajectory(w, tipo_trayectoria::articular);
+		this->plan_Trajectory(w, tipo_trayectoria::cartesiana);
 		w.pop_back();
 
 
@@ -271,6 +273,7 @@ void MyRobot::corregir_error_final()
 			this->rate->sleep();
 		}
 		std::cout << "\033[0m\n";
+		n++;
 	}
 }
 
@@ -304,81 +307,72 @@ void MyRobot::prueba_precision()
 	std::cout << "Comenzando prueba de precision..." << std::endl;
 	this->come_back_home();
 	std::vector<geometry_msgs::Pose> w;
-	for (int t = 0; t < 3; t++)
+
+	for (int i = 0; i<n; i++)
 	{
-		std::cout << "Pruebas para tolerancias:\n" <<
-				"\t·Articular:\t" << this->move_group->getGoalJointTolerance() << std::endl <<
-				"\t·Posicion:\t" << this->move_group->getGoalPositionTolerance() << std::endl <<
-				"\t·Orientacion:\t" << this->move_group->getGoalOrientationTolerance() << std::endl << std::endl;
-		for (int i = 0; i<n; i++)
+		std::cout << "Numero de trayectoria: #" << i << std::endl;
+		/* Ida */
+		switch (eje)
 		{
-			std::cout << "Numero de trayectoria: #" << i << std::endl;
-			/* Ida */
-			switch (eje)
-			{
-			case ejes::eje_x:
-				this->target.position.x += delta;
-				break;
-			case ejes::eje_y:
-				this->target.position.y += delta;
-				break;
-			case ejes::eje_z:
-				this->target.position.z += delta;
-				break;
-			case ejes::diagonal_ari:
-				this->target.position.x += delta;
-				this->target.position.y += delta;
-				this->target.position.z += delta;
-				break;
-			case ejes::diagonal_ard:
-				this->target.position.x += delta;
-				this->target.position.y -= delta;
-				this->target.position.z += delta;
-				break;
-			case ejes::diagonal_abi:
-				this->target.position.x += delta;
-				this->target.position.y += delta;
-				this->target.position.z -= delta;
-				break;
-			case ejes::diagonal_abd:
-				this->target.position.x += delta;
-				this->target.position.y -= delta;
-				this->target.position.z -= delta;
-				break;
-			}
-
-			/* Planificacion y ejecucion */
-
-			geometry_msgs::Pose actual = this->move_group->getCurrentPose().pose;
-			w.push_back(actual);
-			w.push_back(this->target);
-			this->plan_Trajectory(w, tipo);
-			w.clear();
-
-			this->print_state();
-			this->ejecutar();
-
-			/* Vuelta */
-			this->target = this->home;
-
-			/* Planificacion y ejecucion */
-			actual = this->move_group->getCurrentPose().pose;
-			w.push_back(actual);
-			w.push_back(this->target);
-			w.push_back(this->target);
-			this->plan_Trajectory(w, tipo);
-			w.clear();
-
-			this->print_state();
-			this->ejecutar();
-
+		case ejes::eje_x:
+			this->target.position.x += delta;
+			break;
+		case ejes::eje_y:
+			this->target.position.y += delta;
+			break;
+		case ejes::eje_z:
+			this->target.position.z += delta;
+			break;
+		case ejes::diagonal_ari:
+			this->target.position.x += delta;
+			this->target.position.y += delta;
+			this->target.position.z += delta;
+			break;
+		case ejes::diagonal_ard:
+			this->target.position.x += delta;
+			this->target.position.y -= delta;
+			this->target.position.z += delta;
+			break;
+		case ejes::diagonal_abi:
+			this->target.position.x += delta;
+			this->target.position.y += delta;
+			this->target.position.z -= delta;
+			break;
+		case ejes::diagonal_abd:
+			this->target.position.x += delta;
+			this->target.position.y -= delta;
+			this->target.position.z -= delta;
+			break;
 		}
-		this->move_group->setGoalJointTolerance(this->move_group->getGoalJointTolerance()*0.1);
-		this->move_group->setGoalOrientationTolerance((this->move_group->getGoalOrientationTolerance()*0.1));
-		this->move_group->setGoalPositionTolerance(this->move_group->getGoalPositionTolerance()*0.1);
+
+		/* Planificacion y ejecucion */
+
+//		w.push_back(this->move_group->getCurrentPose().pose);
+		w.push_back(this->target);
+		this->plan_Trajectory(w, tipo);
+		w.clear();
+
+//		this->print_state();
+		this->ejecutar(true);
+		this->rate->sleep();
+
+		/* Vuelta */
+		this->target = this->home;
+
+		/* Planificacion y ejecucion */
+//		w.push_back(this->move_group->getCurrentPose().pose);
+		w.push_back(this->target);
+		this->plan_Trajectory(w, tipo);
+		w.clear();
+
+//		this->print_state();
+		this->ejecutar(true);
+		this->rate->sleep();
 	}
 
-	std::cout << "Fin de la prueba de precision..." << std::endl;
+
+
+	std::cout << "\nFin de la prueba de precision..." << std::endl;
 }
 
 void MyRobot::draw_trajectory(std::vector<geometry_msgs::Pose> waypoints)
@@ -401,18 +395,14 @@ void MyRobot::come_back_home()
 {
 	std::cout << "\nPlanificando posicion home...\n\n";
 
-	this->target = this->home;
-	this->move_group->setPoseTarget(this->target);
-
-	if (this->move_group->plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS)
+	std::vector<geometry_msgs::Pose> w;
+	w.push_back(this->home);
+	if (this->plan_Trajectory(w, tipo_trayectoria::cartesiana))
 	{
-		ROS_INFO("Plannification successful.");
-		std::vector<geometry_msgs::Pose> waypoints;
-		waypoints.push_back(this->target);
-		this->draw_trajectory(waypoints);
-
-		this->ejecutar();
+		std::cout << "Ejecutando trayectoria come back home...\n\n";
+		this->ejecutar(true);
 	}
+	w.clear();
 
 }
 
@@ -427,7 +417,11 @@ void MyRobot::ejecutar(bool corregir_error)
 		if (corregir_error)
 			this->corregir_error_final();
 	}
-	this->rate->sleep();
+	for (int i = 0; i < 4; i++)
+	{
+		std::cout << "Esperando... " << i << std::endl;
+		ros::Duration(1).sleep();
+	}
 }
 
 bool MyRobot::plan_Trajectory(std::vector<geometry_msgs::Pose> waypoints, int tipo)
@@ -438,25 +432,34 @@ bool MyRobot::plan_Trajectory(std::vector<geometry_msgs::Pose> waypoints, int ti
 	 */
 	double max_diff;
 	int k = 0;
+	double tolerance = 0;
+	bool actualizado = false;
 	do{
-		std::cout << "Esperando a la actualizacion del joint_states... " << my_abs<double>(queue_joint_states.front().position[k] - queue_joint_states.back().position[k]) << std::endl;
+
+		ros::param::get("/rb1/move_group/trajectory_execution/allowed_start_tolerance", tolerance);
 		if (my_abs<double>(queue_joint_states.front().position[k] - queue_joint_states.back().position[k]) > max_diff)
 		{
 			max_diff = my_abs<double>(queue_joint_states.front().position[k] - queue_joint_states.back().position[k]);
+			std::cout << "Esperando a la actualizacion del joint_states... " << my_abs<double>(queue_joint_states.front().position[k] - queue_joint_states.back().position[k]) << std::endl;
 		}
 		k++;
 		if (k == queue_joint_states.front().position.size())
 		{
 			k = 0;
-			max_diff = -1;
+			if (max_diff < tolerance/2)
+			{
+				actualizado = true;
+			} else max_diff = -1;
 		}
 
-	}while (max_diff != 0);
+	}while (!actualizado);
+
+	std::cout << "\nPlanificando la trayectoria...\n\n";
 
 	bool success = false;
 	bool plan_correct;
 	int n = 0;
-	double tolerance = 0;
+
 	do {
 		plan_correct = true;
 		if (tipo == tipo_trayectoria::articular)
@@ -466,7 +469,7 @@ bool MyRobot::plan_Trajectory(std::vector<geometry_msgs::Pose> waypoints, int ti
 			this->draw_trajectory(waypoints);
 
 		} else if (tipo == tipo_trayectoria::cartesiana) {
-			int n = 0;
+			int k = 0;
 			do {
 				double fraction = this->move_group->computeCartesianPath(waypoints, this->eef_step, this->jump_threshold, my_plan.trajectory_);
 				success = fraction != 0 && fraction != -1;
@@ -476,12 +479,12 @@ bool MyRobot::plan_Trajectory(std::vector<geometry_msgs::Pose> waypoints, int ti
 				}
 				std::cout << "* Fraction of path trajectory: " << fraction << "\033[0m" << std::endl;
 				this->draw_trajectory(waypoints);
-				n++;
-			} while (!success && n < 10);
+				k++;
+			} while (!success && k < 10);
 
 			if (!success)
 			{
-				std::cout << "\033[33m\n\nSe ha probado " << n << " veces la planificacion de la trayectoria"
+				std::cout << "\033[33m\n\nSe ha probado " << k << " veces la planificacion de la trayectoria"
 						"y no se ha podido generar un resultado para el objetivo deseado.\n\n" << "\033[0m";
 			}
 		}
@@ -494,7 +497,8 @@ bool MyRobot::plan_Trajectory(std::vector<geometry_msgs::Pose> waypoints, int ti
 			for (int i = 0; i < my_plan.trajectory_.joint_trajectory.points[0].positions.size(); i++)
 			{
 
-				if (my_abs<double>(joint_states_robot.position[i] - my_plan.trajectory_.joint_trajectory.points[0].positions[i]) >=	tolerance)
+				if (my_abs<double>(joint_states_robot.position[i] - my_plan.trajectory_.joint_trajectory.points[0].positions[i]) >=	tolerance &&
+						my_abs<double>(joint_states_robot.position[i] - my_plan.trajectory_.joint_trajectory.points[0].positions[i]) < 2*M_PI)
 				{
 					std::cout << "\033[33;1m";
 					plan_correct = false;
