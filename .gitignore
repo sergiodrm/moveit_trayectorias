@@ -1,0 +1,17 @@
+/package.xml
+/.cproject
+CMakeCache.txt
+.project
+CMakeFiles/
+CTestConfiguration.ini
+CTestCustom.cmake
+CTestTestfile.cmake
+Makefile
+atomic_configure/
+catkin/
+catkin_generated/
+cmake_install.cmake
+devel/
+gtest/
+msg/
+
