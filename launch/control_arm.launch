@@ -1,0 +1,13 @@
+<launch>
+
+	<arg name="mod_tf" default="false"/>
+	<arg name="moveit" default="false"/>
+
+	<!-- Primero se lanza el launch que modifica el arbol de transformadas
+	para que no muestre warnings al lanzar MoveIt! -->
+	<include ns="rb1" file="$(find moveit_trayectorias)/launch/ConfigTF.launch"/>
+	
+	<!-- Lanzar el launch principal que abre moveit y la interfaz de rviz con el urdf --> 
+	<include ns="rb1" file="$(find rb1_j2s7s200_moveit_config)/launch/demo.launch"/>
+
+</launch>

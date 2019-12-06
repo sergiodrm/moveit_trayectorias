@@ -1,12 +1,5 @@
 <launch>
-   <arg name="load" value="false"/>
-   <arg name="fixed" value="false"/>
-
-   <include file="$(find moveit_trayectorias)/launch/demo.launch">
-      <arg name="load_robot_description" value="true"/>
-      <arg name="fixed_joint" value="$(arg fixed)"/>
-   </include>
-
-   <node name="move_group_pruebas" pkg="moveit_trayectorias" type="move_group_pruebas" respawn="false" output="screen">  
-   </node>
+   
+   <node ns="rb1" pkg="moveit_trayectorias" type="move_group_pruebas" name="control_j2s7s200_SJG" output="screen"/>
+   
 </launch>
