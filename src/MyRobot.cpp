@@ -541,52 +541,6 @@ void MyRobot::grip_control(double position)
 	this->rate->sleep();
 }
 
-void MyRobot::open_door()
-{
-	Puerta puerta;
-	puerta.giro_picaporte = M_PI/6;
-	puerta.giro_puerta = M_PI/4;
-
-	puerta.eje_giro_picaporte.x = 0.7;
-	puerta.eje_giro_picaporte.y = 0;
-	puerta.eje_giro_picaporte.z = 1.1;
-
-	puerta.punto_apoyo_picaporte.x = 0.7;
-	puerta.punto_apoyo_picaporte.y = 0.115;
-	puerta.punto_apoyo_picaporte.z = 1.1;
-
-	puerta.eje_giro_puerta.x = 0.7;
-	puerta.eje_giro_puerta.y = 0.77;
-	puerta.eje_giro_puerta.z = 0.7;
-
-	/* Primero posicionarse en la posicion home */
-	this->come_back_home();
-
-	/* Planear colocarse frente al punto de apoyo */
-	tf2::Quaternion q;
-	char op;
-	q.setRPY(0, M_PI_2, 0);
-	this->target.position.x = puerta.eje_giro_picaporte.x - 0.1;
-	this->target.position.y = puerta.eje_giro_picaporte.y;
-	this->target.position.z = puerta.eje_giro_picaporte.z;
-	this->target.orientation.x = q.getX();
-	this->target.orientation.y = q.getY();
-	this->target.orientation.z = q.getZ();
-	this->target.orientation.w = q.getW();
-
-	this->plan_JointTrajectory(this->target);
-	std::cout << "Ejecutar acercamiento a puerta? (s/n) >>> ";
-	std::cin >> op;
-	if (op == 's')
-	{
-		this->ejecutar();
-	}
-
-}
-
-
-
-
 
 
 

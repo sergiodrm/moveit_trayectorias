@@ -47,10 +47,6 @@ catkin_package(
     EIGEN3
 )
 
-
-
-
-
 ###########
 ## Build ##
 ###########
@@ -59,8 +55,8 @@ include_directories(SYSTEM ${THIS_PACKAGE_INCLUDE_DIRS} ${Boost_INCLUDE_DIR} ${E
 include_directories(include/${PROJECT_NAME} ${catkin_INCLUDE_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
-add_executable(move_group_pruebas src/move_group_pruebas.cpp src/MyRobot.cpp)
-target_link_libraries(move_group_pruebas ${catkin_LIBRARIES} ${Boost_LIBRARIES})
-install(TARGETS move_group_pruebas DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+add_executable(pruebas_precision src/nodo_precision.cpp src/MyRobot.cpp)
+target_link_libraries(pruebas_precision ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+install(TARGETS pruebas_precision DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 
