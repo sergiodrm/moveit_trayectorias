@@ -5,8 +5,12 @@
 
 #include <Eigen/Dense>
 #include <iostream>
-#include <geometry_msgs/Point.h>
+#include <geometry_msgs/Pose.h>
 
 using namespace std;
 
-vector<geometry_msgs::Point> aproximacion_picaporte();
+vector<geometry_msgs::Pose> girar_picaporte(geometry_msgs::Pose apoyo, geometry_msgs::Pose eje);
+
+
+
+

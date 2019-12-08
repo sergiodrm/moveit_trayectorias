@@ -59,4 +59,9 @@ add_executable(pruebas_precision src/nodo_precision.cpp src/MyRobot.cpp)
 target_link_libraries(pruebas_precision ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 install(TARGETS pruebas_precision DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
+add_executable(trayectorias src/nodo_trayectorias.cpp src/MyRobot.cpp)
+target_link_libraries(trayectorias ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+install(TARGETS trayectorias DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+
 
