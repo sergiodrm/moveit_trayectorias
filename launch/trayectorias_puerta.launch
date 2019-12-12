@@ -1,0 +1,5 @@
+<launch>
+   
+   <node ns="rb1" pkg="moveit_trayectorias" type="trayectorias" name="apertura_puerta_SJG" output="screen"/>
+   
+</launch>

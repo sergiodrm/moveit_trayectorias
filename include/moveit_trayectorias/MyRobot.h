@@ -25,6 +25,13 @@
 
 enum ejes {eje_x, eje_y, eje_z, diagonal_ari, diagonal_ard, diagonal_abi, diagonal_abd};
 enum tipo_trayectoria {articular, cartesiana};
+namespace pinza
+{
+
+const double abierta = 0.0;
+const double cerrada = 1.5;
+
+}
 
 class MyRobot {
 public:
@@ -32,17 +39,28 @@ public:
 	MyRobot(const std::string &planning_group);
 	virtual ~MyRobot();
 
-	void moveto_userpoint();
-	void draw_trajectory(std::vector<geometry_msgs::Pose> waypoints);
+
+	/* Metodos para mostrar informacion */
 	void print_state();
+	void print_error(std::vector<double> goal);
+	void draw_trajectory(std::vector<geometry_msgs::Pose> waypoints);
+
+	/* Metodos para definir trayectorias o trayectorias ya definidas*/
+	void moveto_userpoint();
+	void prueba_precision();
+	void come_back_home();
+
+	/* Metodos de planificacion, ejecucion y correccion */
+	bool plan_Trajectory(std::vector<geometry_msgs::Pose> waypoints, int tipo);
 	void ejecutar(bool corregir_error = false);
 	void corregir_error_final();
-	void open_door();
 
-	void come_back_home();
-	bool plan_Trajectory(std::vector<geometry_msgs::Pose> waypoints, int tipo);
-	void prueba_precision();
+	/* Get && Set */
+	bool getModoAutomatico();
+	void setModoAutomatico(bool _mod = false);
+	geometry_msgs::Pose getCurrentPose();
 
+	/* Otros */
 	void grip_control(double position);
 private:
 	// Nombre de referencia para el brazo
@@ -64,6 +82,7 @@ private:
 	geometry_msgs::Pose home;
 	geometry_msgs::Pose target;
 	moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+	bool modo_automatico;
 
 	// Variables para controlar la pinza del brazo
 	ros::Publisher grip;
