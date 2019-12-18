@@ -1,0 +1,22 @@
+localizacion_puerta:
+  eje_picaporte:
+    x: 0.7
+    y: 0
+    z: 1.01
+    roll: 0
+    pitch: 1.57079632
+    yaw: 0
+  eje_puerta:
+    x: 0.7
+    y: 0.775
+    z: 1.01
+    roll: 0
+    pitch: 0
+    yaw: 0
+  apoyo:
+    x: 0.7
+    y: 0.115
+    z: 1.01
+    roll: 0
+    pitch: 1.57079632
+    yaw: 0

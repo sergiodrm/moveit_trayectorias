@@ -46,10 +46,11 @@ void pose2RPY(geometry_msgs::Pose pose, double &roll, double &pitch, double &yaw
 	_m.getRPY(roll, pitch, yaw);
 }
 
-void abrir_puerta(geometry_msgs::Pose apoyo, geometry_msgs::Pose eje_picaporte, geometry_msgs::Pose eje_puerta, vector<geometry_msgs::Pose> &waypoints)
+void abrir_puerta(geometry_msgs::Pose apoyo, geometry_msgs::Pose eje_picaporte, geometry_msgs::Pose eje_puerta, vector<vector<geometry_msgs::Pose>> &waypoints)
 {
 	Transform<double, 3, Affine> T1, T2, T3, T4, T5;
 	geometry_msgs::Pose pose;
+	vector<geometry_msgs::Pose> _w;
 	int n = 5;
 	double alpha = -M_PI/6;
 	double beta = -M_PI/6;
@@ -72,8 +73,11 @@ void abrir_puerta(geometry_msgs::Pose apoyo, geometry_msgs::Pose eje_picaporte, 
 		cout << "Punto de la trayectoria #" << i << ": \tpos [" << pose.position.x << ", " << pose.position.y << ", " << pose.position.z << "]\tori [";
 		cout << pose.orientation.w << ", " << pose.orientation.x << ", " << pose.orientation.y << ", " << pose.orientation.z << "]\n";
 
-		waypoints.push_back(pose);
+		_w.push_back(pose);
 	}
+
+	waypoints.push_back(_w);
+	_w.clear();
 
 	/* Apertura de la puerta */
 	T1 = Translation3d(Vector3d(eje_puerta.position.x, eje_puerta.position.y, eje_puerta.position.z));
@@ -95,11 +99,12 @@ void abrir_puerta(geometry_msgs::Pose apoyo, geometry_msgs::Pose eje_picaporte, 
 		cout << "Punto de la trayectoria #" << i << ": \tpos [" << pose.position.x << ", " << pose.position.y << ", " << pose.position.z << "]\tori [";
 		cout << pose.orientation.w << ", " << pose.orientation.x << ", " << pose.orientation.y << ", " << pose.orientation.z << "]\n";
 
-		waypoints.push_back(pose);
+		_w.push_back(pose);
 	}
+	waypoints.push_back(_w);
+	_w.clear();
 
 	/* Deshacer giro del picaporte */
-//	alpha = -alpha;
 	T2 = AngleAxisd(beta, Vector3d::UnitZ());
 
 	cout << "Deshacer giro del picaporte:\n";
@@ -112,8 +117,10 @@ void abrir_puerta(geometry_msgs::Pose apoyo, geometry_msgs::Pose eje_picaporte, 
 		cout << "Punto de la trayectoria #" << i << ": \tpos [" << pose.position.x << ", " << pose.position.y << ", " << pose.position.z << "]\tori [";
 		cout << pose.orientation.w << ", " << pose.orientation.x << ", " << pose.orientation.y << ", " << pose.orientation.z << "]\n";
 
-		waypoints.push_back(pose);
+		_w.push_back(pose);
 	}
+	waypoints.push_back(_w);
+	_w.clear();
 
 }
 

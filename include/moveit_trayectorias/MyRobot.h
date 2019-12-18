@@ -62,6 +62,7 @@ public:
 
 	/* Otros */
 	void grip_control(double position);
+	void publish_position_topic();
 private:
 	// Nombre de referencia para el brazo
 	std::string planning_group;
@@ -79,6 +80,7 @@ private:
 	sensor_msgs::JointState joint_states;
 
 	// Variables para las trayectorias
+	ros::Publisher topic_position;
 	geometry_msgs::Pose home;
 	geometry_msgs::Pose target;
 	moveit::planning_interface::MoveGroupInterface::Plan my_plan;

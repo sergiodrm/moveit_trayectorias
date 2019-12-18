@@ -1,5 +1,9 @@
 <launch>
-   
+  <!-- Cargar los paramatros de la puerta antes de iniciar el nodo -->
+
+   <rosparam ns="rb1" command="load" file="$(find moveit_trayectorias)/launch/parametros_puerta.yaml"/>
+
+   <!-- Ejecutar el nodo de las trayectorias -->
    <node ns="rb1" pkg="moveit_trayectorias" type="trayectorias" name="apertura_puerta_SJG" output="screen"/>
    
 </launch>

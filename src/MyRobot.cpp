@@ -122,7 +122,7 @@ MyRobot::MyRobot(const std::string &planning_group)
 
 	this->rate = new ros::Rate(5);
 	this->modo_automatico = false;
-
+	this->topic_position = n.advertise<geometry_msgs::Pose>("/rb1/pose_end_effector_SJG", 10);
 }
 
 MyRobot::~MyRobot() {
@@ -417,18 +417,24 @@ void MyRobot::prueba_precision()
 
 void MyRobot::come_back_home()
 {
-	std::cout << "\nPlanificando posicion home...\n\n";
-
-	std::vector<geometry_msgs::Pose> w;
-
-	w.push_back(this->home);
-
-	if (this->plan_Trajectory(w, tipo_trayectoria::articular))
+	double _e = sqrt(pow(this->home.position.x-this->move_group->getCurrentPose().pose.position.x, 2) +
+			pow(this->home.position.y-this->move_group->getCurrentPose().pose.position.y, 2) +
+			pow(this->home.position.z-this->move_group->getCurrentPose().pose.position.z, 2));
+	if (_e >=0.02)
 	{
-		std::cout << "Ejecutando trayectoria come back home...\n\n";
-		this->ejecutar(true);
-	}
-	w.clear();
+		std::cout << "\nPlanificando posicion home...\n\n";
+
+		std::vector<geometry_msgs::Pose> w;
+
+		w.push_back(this->home);
+
+		if (this->plan_Trajectory(w, tipo_trayectoria::articular))
+		{
+			std::cout << "Ejecutando trayectoria come back home...\n\n";
+			this->ejecutar(true);
+		}
+		w.clear();
+	} else std::cout << "\nPosicion actual -> home\n\n";
 
 }
 
@@ -461,8 +467,7 @@ bool MyRobot::plan_Trajectory(std::vector<geometry_msgs::Pose> waypoints, int ti
 				max_diff = my_abs<double>(queue_joint_states.front().position[k] - queue_joint_states.back().position[k]);
 				std::cout << "Esperando a la actualizacion del joint_states... " << my_abs<double>(queue_joint_states.front().position[k] - queue_joint_states.back().position[k]) << std::endl;
 			}
-			k++;
-			if (k == queue_joint_states.front().position.size())
+			if (++k == queue_joint_states.front().position.size())
 			{
 				k = 0;
 				if (max_diff < tolerance/2)
@@ -491,17 +496,21 @@ bool MyRobot::plan_Trajectory(std::vector<geometry_msgs::Pose> waypoints, int ti
 
 		} else if (tipo == tipo_trayectoria::cartesiana) {
 			int k = 0;
+			double fraction;
 			do {
-				double fraction = this->move_group->computeCartesianPath(waypoints, this->eef_step, this->jump_threshold, my_plan.trajectory_);
+				fraction = this->move_group->computeCartesianPath(waypoints, this->eef_step, this->jump_threshold, my_plan.trajectory_);
 				success = fraction != 0 && fraction != -1;
 				if (!success)
 				{
 					std::cout << "\033[31m";
+				} else {
+					if (fraction <= 0.7)
+						std::cout << "\033[33m";
 				}
 				std::cout << "* Fraction of path trajectory: " << fraction << "\033[0m" << std::endl;
 				this->draw_trajectory(waypoints);
 				k++;
-			} while (!success && k < 10);
+			} while (!success && k < 10 && fraction < 0.7);
 
 			if (!success)
 			{
@@ -564,14 +573,11 @@ void MyRobot::ejecutar(bool corregir_error)
 	if (op == 's')
 	{
 		this->move_group->execute(my_plan);
+		this->publish_position_topic();
 		if (corregir_error)
 			this->corregir_error_final();
 	}
-	for (int i = 0; i < 4; i++)
-	{
-//		std::cout << "Esperando... " << i << std::endl;
-		ros::Duration(1).sleep();
-	}
+	ros::Duration(1).sleep();
 }
 
 void MyRobot::corregir_error_final()
@@ -591,7 +597,7 @@ void MyRobot::corregir_error_final()
 	{
 		std::cout << "\033[33mError permitido de " << this->tolerancia_error << " metros." << std::endl;
 		std::cout << "\033[33mError de: " << sqrt(pow(error_ejes.x,2) + pow(error_ejes.y,2) + pow(error_ejes.z,2));
-		std::cout << " metros...\n\n";
+		std::cout << " metros...\033[0m\n\n";
 		w.push_back(this->target);
 		this->plan_Trajectory(w, tipo_trayectoria::cartesiana);
 		w.pop_back();
@@ -603,7 +609,7 @@ void MyRobot::corregir_error_final()
 		}
 		if (op == 's')
 		{
-			this->move_group->move();
+			this->ejecutar(false);
 			error_ejes.x = this->target.position.x - this->move_group->getCurrentPose().pose.position.x;
 			error_ejes.y = this->target.position.y - this->move_group->getCurrentPose().pose.position.y;
 			error_ejes.z = this->target.position.z - this->move_group->getCurrentPose().pose.position.z;
@@ -644,6 +650,10 @@ void MyRobot::grip_control(double position)
 	this->rate->sleep();
 }
 
+void MyRobot::publish_position_topic()
+{
+	this->topic_position.publish(this->move_group->getCurrentPose().pose);
+}
 
 
 
